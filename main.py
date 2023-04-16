@@ -10,12 +10,36 @@ FONT_NAME = "Courier"
 WORK_MIN = 25
 SHORT_BREAK_MIN = 5
 LONG_BREAK_MIN = 20
+reps = 0
+timer = None
 
 
-# ---------------------------- TIMER RESET ------------------------------- #
+def reset_timer():
+    window.after_cancel(timer)
+    canvas.itemconfig(timer_text, text="00:00")
+    label.config(text="Timer")
+    check.config(text="")
+    global reps
+    reps = 0
+
 
 def start_timer():
-    count_down(10)
+    global reps
+    reps += 1
+
+    work_sec = WORK_MIN * 60
+    short_break_sec = SHORT_BREAK_MIN * 60
+    long_break_sec = LONG_BREAK_MIN * 60
+
+    if reps * 8 == 0:
+        label.config(text="Break", fg=RED)
+        count_down(long_break_sec)
+    elif reps % 2 == 0:
+        label.config(text="Break", fg=PINK)
+        count_down(short_break_sec)
+    else:
+        label.config(text="Work", fg=GREEN)
+        count_down(work_sec)
 
 
 def count_down(count):
@@ -26,7 +50,14 @@ def count_down(count):
 
     canvas.itemconfig(timer_text, text=f"{count_min}:{count_sec}")
     if count > 0:
-        window.after(1000, count_down, count - 1)
+        global timer
+        timer = window.after(1000, count_down, count - 1)
+    else:
+        start_timer()
+        marks = ""
+        for _ in range(math.floor(reps/2)):
+            marks += "✓"
+        check.config(text=marks)
 
 
 window = Tk()
@@ -45,10 +76,10 @@ canvas.grid(column=1, row=1)
 button_start = Button(text="Start", font=(FONT_NAME, 10, "normal"), relief="ridge", command=start_timer)
 button_start.grid(column=0, row=2)
 
-button_stop = Button(text="Stop", font=(FONT_NAME, 10, "normal"), relief="ridge")
+button_stop = Button(text="Stop", font=(FONT_NAME, 10, "normal"), relief="ridge", command=reset_timer)
 button_stop.grid(column=2, row=2)
 
-check = Label(text="✓", fg=GREEN, font=(FONT_NAME, 20, "bold"), bg=YELLOW)
+check = Label(fg=GREEN, font=(FONT_NAME, 20, "bold"), bg=YELLOW)
 check.grid(column=1, row=3)
 
 window.mainloop()
